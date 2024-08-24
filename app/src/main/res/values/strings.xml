@@ -226,4 +226,16 @@
     <string name="pref_keycode_map">Keycode map</string>
     <string name="pref_touch_test">Touch test</string>
     <string name="pref_key_test">Key test</string>
+    <string name="companyname">COMPANY_NAME</string>
+    <string name="logo_desc">Company logo</string>
+    <string name="initial_status">Initialising, please wait...</string>
+
+    <string name="status_scanning">Scanning for nearby scouts...</string>
+    <string name="status_idle">Select a device to connect to</string>
+    <string name="status_scanning_ready">Select a device to connect to</string>
+    <string name="status_waiting">Waiting for Bluetooth...</string>
+    <string name="status_scan_error">Error starting Bluetooth device scan</string>
+    <string name="status_no_bluetooth">Bluetooth unavailable. Device may be unsupported.</string>
+    <string name="status_bluetooth_disabled">Bluetooth is disabled. Please enabled bluetooth.</string>
+    <string name="status_no_bt_permission">Bluetooth permission denied. Please allow bluetooth.</string>
 </resources>

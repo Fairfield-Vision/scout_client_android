@@ -118,14 +118,14 @@ class ServerTabs(val activity: HomeActivity) {
     private fun createSavedServersView(parent: ViewGroup): View {
         val binding = ServerSavedBinding.inflate(activity.layoutInflater, parent, false)
         binding.lifecycleOwner = activity
-        binding.viewModel = activity.viewModel
+        //binding.viewModel = activity.viewModel
 
-        val adapter = SavedServerAdapter(activity.viewModel)
-        binding.serversRv.layoutManager = LinearLayoutManager(activity)
-        binding.serversRv.adapter = adapter
-        binding.serversRv.setHasFixedSize(true)
+        //val adapter = SavedServerAdapter(activity.viewModel)
+        //binding.serversRv.layoutManager = LinearLayoutManager(activity)
+        //binding.serversRv.adapter = adapter
+        //binding.serversRv.setHasFixedSize(true)
 
-        activity.viewModel.serverProfiles.observe(activity) { adapter.submitList(it) }
+        //activity.viewModel.serverProfiles.observe(activity) { adapter.submitList(it) }
         return binding.root
     }
 
@@ -165,15 +165,15 @@ class ServerTabs(val activity: HomeActivity) {
 
     private fun createDiscoveredServersView(parent: ViewGroup): View {
         val binding = ServerDiscoveryBinding.inflate(activity.layoutInflater, parent, false)
-        binding.lifecycleOwner = activity
-        binding.viewModel = activity.viewModel
+        //binding.lifecycleOwner = activity
+        //binding.viewModel = activity.viewModel
 
-        val adapter = DiscoveredServerAdapter(activity.viewModel)
-        binding.discoveredRv.layoutManager = LinearLayoutManager(activity)
-        binding.discoveredRv.adapter = adapter
-        binding.discoveredRv.setHasFixedSize(true)
+        //val adapter = DiscoveredServerAdapter(activity.viewModel)
+        //binding.discoveredRv.layoutManager = LinearLayoutManager(activity)
+        //binding.discoveredRv.adapter = adapter
+        //binding.discoveredRv.setHasFixedSize(true)
 
-        activity.viewModel.discovery.servers.observe(activity) { adapter.submitList(it) }
+        //activity.viewModel.discovery.servers.observe(activity) { adapter.submitList(it) }
 
         return binding.root
     }
