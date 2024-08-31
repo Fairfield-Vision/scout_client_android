@@ -8,14 +8,19 @@
 
 package com.gaurav.avnc.ui.vnc
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PictureInPictureParams
-import android.content.Context
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.ParcelUuid
 import android.os.Parcelable
 import android.os.SystemClock
 import android.util.Log
@@ -28,6 +33,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import android.content.Context
 import androidx.core.os.BundleCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -49,38 +55,44 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.lang.ref.WeakReference
+import java.net.ServerSocket
+import java.util.UUID
+import kotlin.concurrent.thread
 
 /********** [VncActivity] startup helpers *********************************/
 
 private const val PROFILE_KEY = "com.gaurav.avnc.server_profile"
 private const val FRAME_STATE_KEY = "com.gaurav.avnc.frame_state"
+private const val BTDEV_KEY = "com.gaurav.avnc.bluetooth_device"
 
-fun createVncIntent(context: Context, profile: ServerProfile): Intent {
+fun createVncIntent(context: Context, dev: BluetoothDevice): Intent {
     return Intent(context, VncActivity::class.java).apply {
-        putExtra(PROFILE_KEY, profile)
+        putExtra(BTDEV_KEY, dev)
     }
 }
 
-fun startVncActivity(source: Activity, profile: ServerProfile) {
-    source.startActivity(createVncIntent(source, profile))
+fun startVncActivity(source: Activity, dev: BluetoothDevice) {
+    source.startActivity(createVncIntent(source, dev))
 }
 
 fun startVncActivity(source: Activity, uri: VncUri) {
-    startVncActivity(source, uri.toServerProfile())
+    // nothing happens
 }
 
 @Parcelize
 private data class SavedFrameState(val frameX: Float, val frameY: Float, val zoom1: Float, val zoom2: Float) : Parcelable
-
+/*
 private fun startVncActivity(source: Activity, profile: ServerProfile, frameState: SavedFrameState) {
-    source.startActivity(createVncIntent(source, profile).also { it.putExtra(FRAME_STATE_KEY, frameState) })
-}
+    source.startActivity(createVncIntent(source).also { it.putExtra(FRAME_STATE_KEY, frameState) })
+}*/
 /**************************************************************************/
 
 
 /**
  * This activity handles the connection to a VNC server.
  */
+
+
 class VncActivity : AppCompatActivity() {
 
     lateinit var viewModel: VncViewModel
@@ -95,6 +107,66 @@ class VncActivity : AppCompatActivity() {
     private var restoredFromBundle = false
     private var wasConnectedWhenStopped = false
     private var onStartTime = 0L
+
+    private var device: BluetoothDevice? = null
+
+
+    @SuppressLint("MissingPermission")
+    class BTPatchThread(btdevice: BluetoothDevice):Thread(){
+
+        private var device: BluetoothDevice? = null
+        private var done = false
+
+        init{
+            device = btdevice
+        }
+
+        fun stop_running(){
+            done = true
+        }
+
+
+        override fun run(){
+            while (!done) {
+                val isock = ServerSocket(5901)
+                var s = isock.accept()
+                var i_in = s.getInputStream()
+                var i_out = s.getOutputStream()
+                var btsock = this.device?.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"))
+                btsock?.connect()
+                var bt_in = btsock?.inputStream
+                var bt_out = btsock?.outputStream
+                if (bt_out != null) {
+                    val t1 = thread{
+                        try {
+                            while (isock.isBound) {
+                                i_out.write(bt_in!!.read())
+                            }
+                        }
+                        catch (_: java.net.SocketException){
+
+                        }
+                    }
+                    val t2 = thread {
+                        try {
+                            while (btsock?.isConnected == true) {
+                                bt_out.write(i_in.read())
+                            }
+                        }
+                        catch (_: java.net.SocketException) {
+
+                        }
+                    }
+                    t1.join()
+                    t2.join()
+                    btsock?.close()
+                    isock.close()
+                }
+            }
+        }
+    }
+
+    private var patch_thread: BTPatchThread? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         DeviceAuthPrompt.applyFingerprintDialogFix(supportFragmentManager)
@@ -153,26 +225,32 @@ class VncActivity : AppCompatActivity() {
         if (viewModel.pref.viewer.pauseUpdatesInBackground)
             viewModel.pauseFrameBufferUpdates()
         wasConnectedWhenStopped = viewModel.state.value.isConnected
+        if (patch_thread != null) {
+            patch_thread!!.stop_running()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putParcelable(PROFILE_KEY, viewModel.profile)
+        outState.putParcelable(BTDEV_KEY, device)
         outState.putBoolean("wasConnectedWhenStopped", wasConnectedWhenStopped || viewModel.state.value.isConnected)
     }
 
     private fun loadViewModel(savedState: Bundle?): Boolean {
+        val profile = ServerProfile(host="localhost", port=5901)
         @Suppress("DEPRECATION")
-        val profile = savedState?.getParcelable(PROFILE_KEY)
-                      ?: intent.getParcelableExtra<ServerProfile?>(PROFILE_KEY)
-
-        if (profile == null) {
-            Toast.makeText(this, "Error: Missing Server Info", Toast.LENGTH_LONG).show()
-            return false
-        }
-
+        device = savedState?.getParcelable(BTDEV_KEY)
+                              ?: intent.getParcelableExtra<BluetoothDevice?>(BTDEV_KEY)
+        if (device == null) {
+                        Toast.makeText(this, "Error: Missing bluetooth device", Toast.LENGTH_LONG).show()
+                        return false
+                    }
+        patch_thread = BTPatchThread(device!!)
+        patch_thread?.start()
         val factory = viewModelFactory { initializer { VncViewModel(profile, application) } }
         viewModel = viewModels<VncViewModel> { factory }.value
+
         return true
     }
 
@@ -183,8 +261,8 @@ class VncActivity : AppCompatActivity() {
             val savedFrameState = viewModel.frameState.let {
                 SavedFrameState(frameX = it.frameX, frameY = it.frameY, zoom1 = it.zoomScale1, zoom2 = it.zoomScale2)
             }
-
-            startVncActivity(this, viewModel.profile, savedFrameState)
+            // TODO make this work again
+            //startVncActivity(this, viewModel.profile, savedFrameState)
 
             if (seamless) {
                 @Suppress("DEPRECATION")

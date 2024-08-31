@@ -166,15 +166,18 @@ class HomeActivity : AppCompatActivity() {
             val addr = devices.keys.elementAt(i)
             val dev = devices[addr]
             Log.d("Scout", "Connect to device: ${dev?.name}, $addr")
-            connect_to_scout(addr)
+            if (dev != null) {
+                connect_to_scout(dev)
+            }
         }
 
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, filter)
     }
 
-    private fun connect_to_scout(addr: String) {
-
+    private fun connect_to_scout(dev: BluetoothDevice) {
+        //bluetoothAdapter?.cancelDiscovery() // TODO maybe do this
+        startNewConnection(dev)
     }
 
     override fun onDestroy() {
@@ -371,9 +374,9 @@ class HomeActivity : AppCompatActivity() {
         scanThread.stop_scanning()
     }
 
-    private fun startNewConnection(profile: ServerProfile) {
+    private fun startNewConnection(dev: BluetoothDevice) {
         if (checkNativeLib())
-            startVncActivity(this, profile)
+            startVncActivity(this, dev)
     }
 
     /**

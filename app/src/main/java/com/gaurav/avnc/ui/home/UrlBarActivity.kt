@@ -58,10 +58,10 @@ class UrlBarActivity : AppCompatActivity() {
         binding.serversRv.setHasFixedSize(true)
         binding.serversRv.itemAnimator?.addDuration = 0 // Disable "flashing" of added items
         viewModel.filteredServers.observe(this) { adapter.submitList(it) }
-        homeViewModel.newConnectionEvent.observe(this) {
-            startVncActivity(this, it)
-            finish()
-        }
+        //homeViewModel.newConnectionEvent.observe(this) {
+        //    startVncActivity(this, it)
+        //    finish()
+        //}
 
         binding.url.requestFocus()
     }

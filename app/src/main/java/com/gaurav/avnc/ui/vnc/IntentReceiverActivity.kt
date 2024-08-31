@@ -68,15 +68,15 @@ class IntentReceiverActivity : AppCompatActivity() {
     }
 
     private suspend fun launchFromProfileName(name: String) {
-        val profile = profileDao.getByName(name).firstOrNull()
-        if (profile == null) toast("No server found with name '$name'")
-        else startVncActivity(this, profile)
+        //val profile = profileDao.getByName(name).firstOrNull()
+        //if (profile == null) toast("No server found with name '$name'")
+        //else startVncActivity(this, profile)
     }
 
     private suspend fun launchFromProfileId(profileId: Long) {
-        val profile = profileDao.getByID(profileId)
-        if (profile == null) toast(getString(R.string.msg_shortcut_server_deleted))
-        else startVncActivity(this, profile)
+        //val profile = profileDao.getByID(profileId)
+        //if (profile == null) toast(getString(R.string.msg_shortcut_server_deleted))
+        //else startVncActivity(this, profile)
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
