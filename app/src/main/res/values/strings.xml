@@ -7,7 +7,7 @@
   -->
 
 <resources>
-    <string name="app_name" translatable="false">AVNC</string>
+    <string name="app_name" translatable="false">Fairfield</string>
 
     <string name="title_add_server_profile">Add server</string>
     <string name="title_edit_server_profile">Edit server</string>
@@ -75,7 +75,7 @@
     <string name="hint_send_text_to_server">Send text to server</string>
 
 
-    <string name="msg_about_app">A fast and secure VNC client. Remotely view and control any device running a VNC server.\n\n\nAVNC is an open source and copyleft software — made with help from many contributors.</string>
+    <string name="msg_about_app">A VNC client to control the HiveSigth scout. Remotely view and update information on a scout.\n\n\nThis app is built on AVNC open source and copyleft software — made with help from many contributors.</string>
     <string name="msg_server_profile_added">Server added</string>
     <string name="msg_server_profile_deleted">Server deleted</string>
     <string name="msg_zoom_locked">Zoom locked</string>
@@ -226,7 +226,7 @@
     <string name="pref_keycode_map">Keycode map</string>
     <string name="pref_touch_test">Touch test</string>
     <string name="pref_key_test">Key test</string>
-    <string name="companyname">COMPANY_NAME</string>
+    <string name="companyname">Fairfield Vision \n\n HiveSight</string>
     <string name="logo_desc">Company logo</string>
     <string name="initial_status">Initialising, please wait...</string>
 
